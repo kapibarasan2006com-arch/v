@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>うどん職人 - Udon Artisan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+JP:wght@400;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f5f5dc;
+            color: #333;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .game-container {
+            background-color: #fff;
+            border: 8px solid #8b4513;
+            box-shadow: 10px 10px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .bowl {
+            width: 260px;
+            height: 260px;
+            background: #fff;
+            border-radius: 50%;
+            border: 12px solid #2c3e50;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 10px 20px rgba(0, 0, 0, 0.3);
+            margin: 0 auto;
+        }
+
+        .broth {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            transition: background 0.5s;
+            z-index: 0;
+            opacity: 0.9;
+        }
+
+        .broth.kake {
+            background: rgba(189, 143, 88, 0.9);
+        }
+
+        /* Light Brown */
+        .broth.bukake {
+            background: rgba(87, 58, 30, 0.95);
+        }
+
+        /* Dark Brown */
+        .broth.curry {
+            background: rgba(211, 145, 23, 0.95);
+        }
+
+        /* Curry Color */
+
+        .noodles {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-image: repeating-linear-gradient(180deg,
+                    transparent 0,
+                    transparent 15px,
+                    #fff 15px,
+                    #fff 25px);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 0.5s;
+            z-index: 1;
+            mask-image: radial-gradient(circle, black 60%, transparent 70%);
+        }
+
+        .knead-area {
+            width: 150px;
+            height: 150px;
+            background-color: #fff;
+            border-radius: 50%;
+            border: 5px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+
+        .knead-area:active {
+            transform: scale(0.95);
+        }
+
+        .knead-progress {
+            width: 100%;
+            height: 10px;
+            background: #eee;
+            margin-top: 10px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .knead-bar {
+            height: 100%;
+            background: #4caf50;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .topping {
+            position: absolute;
+            z-index: 10;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0);
+        }
+
+        .topping.placed {
+            transform: scale(1);
+        }
+
+        .tempura-ebi {
+            font-size: 3rem;
+            transform: rotate(45deg);
+            filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.2));
+        }
+
+        .tempura-kakiage {
+            font-size: 3rem;
+            filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.2));
+        }
+
+        .negi {
+            font-size: 2rem;
+            color: #4caf50;
+        }
+
+        .kamaboko {
+            font-size: 2rem;
+        }
+
+        .btn-action {
+            @apply px-4 py-3 bg-indigo-600 text-white font-bold rounded shadow-lg hover:bg-indigo-500 active:translate-y-1 transition text-sm;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4 bg-orange-50">
+
+    <div class="game-container p-8 rounded-xl max-w-4xl w-full">
+        <div class="flex justify-between items-end mb-6 border-b-4 border-gray-200 pb-4">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-black text-gray-800 mb-1">うどん職人シミュレーター</h1>
+                <p class="text-xs text-gray-500 font-bold tracking-widest">UDON ARTISAN</p>
+            </div>
+            <div class="text-right">
+                <div class="text-xs text-gray-400">SCORE</div>
+                <div id="score" class="text-3xl font-black text-indigo-600 pixel-font">0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Step 1: Knead & Boil -->
+            <div class="flex flex-col items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                <h3 class="font-bold text-gray-700 border-b-2 border-gray-300 pb-1 w-full text-center">1. 麺作り (KNEAD)
+                </h3>
+
+                <div id="knead-btn" class="knead-area shadow-inner" onclick="knead()">
+                    <span class="text-4xl">👊</span>
+                </div>
+                <div class="w-full">
+                    <div class="knead-progress">
+                        <div id="knead-bar" class="knead-bar"></div>
+                    </div>
+                    <p id="knead-text" class="text-center text-xs mt-1 text-gray-500">クリックしてこねろ！</p>
+                </div>
+
+                <button id="btn-boil" onclick="boil()" class="btn-action w-full opacity-50 cursor-not-allowed"
+                    disabled>茹でる (BOIL)</button>
+            </div>
+
+            <!-- Step 2: Bowl Assembly -->
+            <div class="flex flex-col items-center justify-center relative">
+                <div class="bowl">
+                    <div id="broth" class="broth"></div>
+                    <div id="noodles" class="noodles"></div>
+                    <div id="toppings-area"></div>
+                </div>
+                <!-- Steam Effect -->
+                <div id="steam" class="absolute top-0 opacity-0 transition duration-1000">♨️</div>
+            </div>
+
+            <!-- Step 3: Broth & Toppings -->
+            <div class="flex flex-col gap-4 p-4 bg-gray-50 rounded-lg">
+                <h3 class="font-bold text-gray-700 border-b-2 border-gray-300 pb-1 w-full text-center">2. 仕上げ (FINISH)
+                </h3>
+
+                <div class="grid grid-cols-3 gap-2 mb-2">
+                    <button onclick="setBroth('kake')"
+                        class="bg-amber-200 hover:bg-amber-300 text-amber-900 text-xs font-bold py-2 rounded">かけ</button>
+                    <button onclick="setBroth('bukake')"
+                        class="bg-amber-800 hover:bg-amber-900 text-white text-xs font-bold py-2 rounded">ぶっかけ</button>
+                    <button onclick="setBroth('curry')"
+                        class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-bold py-2 rounded">カレー</button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="addTopping('ebi')"
+                        class="border-2 border-dashed border-gray-300 hover:bg-white p-2 rounded text-2xl">🍤</button>
+                    <button onclick="addTopping('kakiage')"
+                        class="border-2 border-dashed border-gray-300 hover:bg-white p-2 rounded text-2xl">🥞</button>
+                    <button onclick="addTopping('negi')"
+                        class="border-2 border-dashed border-gray-300 hover:bg-white p-2 rounded text-2xl">🌿</button>
+                    <button onclick="addTopping('kamaboko')"
+                        class="border-2 border-dashed border-gray-300 hover:bg-white p-2 rounded text-2xl">🍥</button>
+                </div>
+
+                <button onclick="serve()"
+                    class="btn-action bg-red-600 hover:bg-red-500 w-full mt-auto">へいお待ち！(SERVE)</button>
+            </div>
+        </div>
+
+        <div class="mt-8 text-center">
+            <a href="index.html"
+                class="inline-block px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-full text-gray-600 font-bold text-sm transition">🏠
+                ホームに戻る</a>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            kneadCount: 0,
+            kneadTarget: 20,
+            hasNoodles: false,
+            isBoiled: false,
+            broth: null,
+            toppings: [],
+            score: 0
+        };
+
+        const els = {
+            kneadBar: document.getElementById('knead-bar'),
+            kneadText: document.getElementById('knead-text'),
+            btnBoil: document.getElementById('btn-boil'),
+            noodles: document.getElementById('noodles'),
+            broth: document.getElementById('broth'),
+            toppings: document.getElementById('toppings-area'),
+            score: document.getElementById('score'),
+            steam: document.getElementById('steam')
+        };
+
+        function playSound(freq, type = 'sine') {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        }
+
+        function knead() {
+            if (state.hasNoodles) return;
+            state.kneadCount++;
+            const pct = Math.min((state.kneadCount / state.kneadTarget) * 100, 100);
+            els.kneadBar.style.width = `${pct}%`;
+            playSound(100 + state.kneadCount * 10, 'triangle');
+
+            if (state.kneadCount >= state.kneadTarget) {
+                els.kneadText.textContent = "コシのある生地ができた！";
+                els.btnBoil.classList.remove('opacity-50', 'cursor-not-allowed');
+                els.btnBoil.disabled = false;
+            }
+        }
+
+        function boil() {
+            if (state.kneadCount < state.kneadTarget || state.isBoiled) return;
+            els.btnBoil.textContent = "茹で中...";
+            playSound(300, 'square');
+
+            setTimeout(() => {
+                state.hasNoodles = true;
+                state.isBoiled = true;
+                els.noodles.style.opacity = 1;
+                els.btnBoil.textContent = "茹で上がり！";
+                els.steam.style.opacity = 1;
+                playSound(600, 'sine');
+            }, 1500);
+        }
+
+        function setBroth(type) {
+            if (!state.isBoiled) {
+                alert("先に麺を茹でてください！");
+                return;
+            }
+            state.broth = type;
+            els.broth.className = `broth ${type}`;
+            playSound(400, 'sine');
+        }
+
+        function addTopping(type) {
+            if (!state.isBoiled) return;
+            const el = document.createElement('div');
+            el.className = `topping ${type}`;
+            el.innerHTML = type === 'ebi' ? '🍤' : type === 'kakiage' ? '🥞' : type === 'negi' ? '🌿' : '🍥';
+
+            const x = Math.random() * 100 + 40;
+            const y = Math.random() * 100 + 40;
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+            el.style.transform = `scale(1) rotate(${Math.random() * 360}deg)`;
+
+            els.toppings.appendChild(el);
+            state.toppings.push(type);
+            playSound(800, 'triangle');
+
+            setTimeout(() => el.classList.add('placed'), 10);
+        }
+
+        function serve() {
+            if (!state.broth) {
+                alert("つゆが入っていません！");
+                return;
+            }
+
+            let points = 500; // Base score
+            points += state.toppings.length * 150;
+            if (state.broth === 'curry' && state.toppings.includes('ebi')) points += 500; // Bonus combo
+
+            state.score += points;
+            els.score.textContent = state.score;
+
+            alert(`へいお待ち！ スコア: ${points}\n素晴らしいコシだ！`);
+            reset();
+        }
+
+        function reset() {
+            state.kneadCount = 0;
+            state.hasNoodles = false;
+            state.isBoiled = false;
+            state.broth = null;
+            state.toppings = [];
+
+            els.kneadBar.style.width = '0%';
+            els.kneadText.textContent = "クリックしてこねろ！";
+            els.btnBoil.textContent = "茹でる (BOIL)";
+            els.btnBoil.classList.add('opacity-50', 'cursor-not-allowed');
+            els.btnBoil.disabled = true;
+
+            els.noodles.style.opacity = 0;
+            els.broth.className = 'broth';
+            els.toppings.innerHTML = '';
+            els.steam.style.opacity = 0;
+        }
+    </script>
+</body>
+
+</html>

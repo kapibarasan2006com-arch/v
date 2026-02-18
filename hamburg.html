@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>究極のリアル・ハンバーグ・シュミレーター</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Game Specific Styles */
+        body {
+            background-color: #fce4ec;
+            /* Light Pink for Hamburg theme? or stick to global */
+            /* Using global style.css but overriding some for game container specific needs */
+        }
+
+        #game-area {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 20px auto;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            min-height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phase-indicator {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* --- Mincing Phase --- */
+        #meat-block {
+            font-size: 5rem;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        #meat-block:active {
+            transform: scale(0.9);
+        }
+
+        .minced-count {
+            font-size: 1.2rem;
+            color: #555;
+        }
+
+        /* --- Kneading Phase --- */
+        #bowl {
+            width: 200px;
+            height: 100px;
+            background: #ddd;
+            border-radius: 0 0 100px 100px;
+            margin: 50px auto;
+            position: relative;
+        }
+
+        #patty-raw {
+            width: 100px;
+            height: 80px;
+            background: #e57373;
+            border-radius: 50%;
+            position: absolute;
+            top: -40px;
+            left: 50px;
+            transition: top 0.2s, transform 0.2s;
+        }
+
+        .air-bubble {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: popUp 0.5s forwards;
+        }
+
+        @keyframes popUp {
+            to {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+        }
+
+        /* --- Grilling Phase --- */
+        #pan {
+            width: 300px;
+            height: 300px;
+            background: #333;
+            border-radius: 50%;
+            margin: 20px auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 10px solid #555;
+        }
+
+        #patty-grill {
+            width: 140px;
+            height: 110px;
+            background: #e57373;
+            border-radius: 40%;
+            cursor: pointer;
+            transition: background 1s;
+            position: relative;
+        }
+
+        .smoke {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            font-size: 2rem;
+            opacity: 0;
+            animation: rise 2s infinite;
+        }
+
+        @keyframes rise {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: translateY(-40px) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        /* --- Result --- */
+        .score-display {
+            font-size: 2rem;
+            color: #e1b12c;
+            font-weight: bold;
+        }
+
+        .comment {
+            font-size: 1.2rem;
+            margin-top: 10px;
+            color: var(--text-color);
+        }
+
+        /* Controls */
+        .action-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .action-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .meter-container {
+            width: 80%;
+            height: 20px;
+            background: #eee;
+            border-radius: 10px;
+            margin: 10px auto;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            background: var(--secondary-color);
+            width: 0%;
+            transition: width 0.1s;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <nav>
+            <a href="index.html" class="logo">ホワイトユニバース</a>
+            <ul class="nav-links">
+                <li><a href="index.html">ホーム</a></li>
+                <li><a href="game.html">ゲームで遊ぶ</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>究極のリアル・ハンバーグ</h1>
+            <p>ミンチから焼き上げまで、職人の技を見せつけろ！</p>
+
+            <div id="game-area">
+                <div id="phase-1" class="phase">
+                    <div class="phase-indicator">Step 1: 挽く (Mince)</div>
+                    <p>お肉をクリックして連打で挽け！</p>
+                    <div id="meat-block" onclick="minceMeat()">🥩</div>
+                    <div class="meter-container">
+                        <div id="mince-meter" class="meter-fill"></div>
+                    </div>
+                </div>
+
+                <div id="phase-2" class="phase" style="display:none;">
+                    <div class="phase-indicator">Step 2: こねる (Knead)</div>
+                    <p>「PUNCH」ボタンをリズムよく押して空気を抜け！</p>
+                    <div id="bowl">
+                        <div id="patty-raw"></div>
+                    </div>
+                    <button id="knead-btn" class="action-btn" onclick="kneadPatty()">PUNCH! (空気抜き)</button>
+                    <div class="meter-container">
+                        <div id="air-meter" class="meter-fill" style="width:100%; background:#e57373;"></div>
+                    </div>
+                </div>
+
+                <div id="phase-3" class="phase" style="display:none;">
+                    <div class="phase-indicator">Step 3: 焼く (Grill)</div>
+                    <p>色が変わったらひっくり返せ！ (裏表1回ずつ)</p>
+                    <div id="pan">
+                        <div id="patty-grill" onclick="flipPatty()">
+                            <div class="smoke">💭</div>
+                        </div>
+                    </div>
+                    <div id="grill-status">表面: <span id="side-a-status">生</span> / 裏面: <span id="side-b-status">生</span>
+                    </div>
+                    <button id="finish-btn" class="action-btn" onclick="finishCooking()">完成！</button>
+                </div>
+
+                <div id="phase-4" class="phase" style="display:none;">
+                    <div class="phase-indicator">実食 (Result)</div>
+                    <div id="final-patty" style="font-size:5rem;">🍖</div>
+                    <div class="score-display">Score: <span id="score">0</span></div>
+                    <div class="comment" id="judge-comment">...</div>
+                    <button class="action-btn" onclick="location.reload()">もう一度作る</button>
+                    <br><br>
+                    <a href="index.html" style="color:var(--secondary-color);">ホームに戻る</a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 White Universe</p>
+    </footer>
+
+    <script>
+        // Game State
+        let gameState = {
+            minceProgress: 0,
+            airLevel: 100,
+            grillTimeA: 0,
+            grillTimeB: 0,
+            currentSide: 'A', // A or B
+            isCooking: false,
+            interval: null
+        };
+
+        // --- Phase 1: Mince ---
+        function minceMeat() {
+            gameState.minceProgress += 5;
+            document.getElementById('mince-meter').style.width = gameState.minceProgress + '%';
+
+            // Visual feedback
+            const meat = document.getElementById('meat-block');
+            meat.style.transform = 'scale(0.9) rotate(' + (Math.random() * 20 - 10) + 'deg)';
+            setTimeout(() => meat.style.transform = 'none', 50);
+
+            if (gameState.minceProgress >= 100) {
+                setTimeout(startPhase2, 500);
+            }
+        }
+
+        // --- Phase 2: Knead ---
+        function startPhase2() {
+            document.getElementById('phase-1').style.display = 'none';
+            document.getElementById('phase-2').style.display = 'block';
+        }
+
+        function kneadPatty() {
+            if (gameState.airLevel <= 0) return;
+
+            gameState.airLevel -= 5;
+            document.getElementById('air-meter').style.width = gameState.airLevel + '%';
+
+            // Animation
+            const patty = document.getElementById('patty-raw');
+            patty.style.top = '0px';
+            patty.style.transform = 'scaleX(1.1) scaleY(0.9)';
+
+            // Air bubble effect
+            const bubble = document.createElement('div');
+            bubble.className = 'air-bubble';
+            bubble.innerText = '💨';
+            bubble.style.left = Math.random() * 100 + 50 + 'px';
+            bubble.style.top = '0px';
+            document.getElementById('bowl').appendChild(bubble);
+            setTimeout(() => bubble.remove(), 500);
+
+            setTimeout(() => {
+                patty.style.top = '-40px';
+                patty.style.transform = 'none';
+            }, 150);
+
+            if (gameState.airLevel <= 10) { // Good enough
+                document.getElementById('knead-btn').innerText = '成形完了！次へ！';
+                document.getElementById('knead-btn').onclick = startPhase3;
+                document.getElementById('knead-btn').style.background = 'var(--secondary-color)';
+            }
+        }
+
+        // --- Phase 3: Grill ---
+        function startPhase3() {
+            document.getElementById('phase-2').style.display = 'none';
+            document.getElementById('phase-3').style.display = 'block';
+            gameState.isCooking = true;
+            gameState.interval = setInterval(cookingLoop, 100);
+        }
+
+        function cookingLoop() {
+            if (!gameState.isCooking) return;
+
+            if (gameState.currentSide === 'A') {
+                gameState.grillTimeA += 0.1;
+                updateColor(gameState.grillTimeA);
+                document.getElementById('side-a-status').innerText = getDoneness(gameState.grillTimeA);
+            } else {
+                gameState.grillTimeB += 0.1;
+                updateColor(gameState.grillTimeB);
+                document.getElementById('side-b-status').innerText = getDoneness(gameState.grillTimeB);
+            }
+        }
+
+        function updateColor(time) {
+            const patty = document.getElementById('patty-grill');
+            // Raw (e57373) -> Brown (8d6e63) -> Burnt (3e2723)
+            if (time < 5) {
+                patty.style.background = '#e57373'; // Raw
+            } else if (time < 10) {
+                patty.style.background = '#d7ccc8'; // Cooking
+            } else if (time < 15) {
+                patty.style.background = '#8d6e63'; // Good
+            } else {
+                patty.style.background = '#3e2723'; // Burnt
+            }
+        }
+
+        function getDoneness(time) {
+            if (time < 5) return '生 (Raw)';
+            if (time < 10) return '半生 (Rare)';
+            if (time < 15) return '適正 (Good)';
+            return '焦げ (Burnt)';
+        }
+
+        function flipPatty() {
+            if (gameState.currentSide === 'A') {
+                gameState.currentSide = 'B';
+                const patty = document.getElementById('patty-grill');
+                patty.style.transform = 'rotateX(180deg)';
+                // Reset visual color for B side logic (simulated)
+                // In reality, we just track internal timer, visual shows current side
+                updateColor(gameState.grillTimeB);
+            } else {
+                gameState.currentSide = 'A';
+                const patty = document.getElementById('patty-grill');
+                patty.style.transform = 'rotateX(0deg)';
+                updateColor(gameState.grillTimeA);
+            }
+        }
+
+        function finishCooking() {
+            clearInterval(gameState.interval);
+            showResult();
+        }
+
+        // --- Phase 4: Result ---
+        function showResult() {
+            document.getElementById('phase-3').style.display = 'none';
+            document.getElementById('phase-4').style.display = 'block';
+
+            // Calculate Score
+            // Perfect time is 12-14 seconds per side
+            const diffA = Math.abs(13 - gameState.grillTimeA);
+            const diffB = Math.abs(13 - gameState.grillTimeB);
+            const airPenalty = gameState.airLevel; // Less air = better
+
+            let score = 100 - (diffA * 5) - (diffB * 5) - (airPenalty * 0.5);
+            if (score > 100) score = 100;
+            if (score < 0) score = 0;
+            score = Math.floor(score);
+
+            document.getElementById('score').innerText = score;
+
+            let comment = "";
+            let pattyEmoji = "🍖";
+
+            if (score === 100) {
+                comment = "神のハンバーグ！肉汁の洪水だ！";
+                pattyEmoji = "✨🍖✨";
+            } else if (score >= 80) {
+                comment = "美味しい！お店レベルの完成度。";
+            } else if (score >= 50) {
+                comment = "家庭の味。また食べたくなるね。";
+            } else if (gameState.grillTimeA > 15 || gameState.grillTimeB > 15) {
+                comment = "焦げてる...苦い...";
+                pattyEmoji = "⚫";
+            } else {
+                comment = "生焼けだ...お腹壊すかも？";
+                pattyEmoji = "🤢";
+            }
+
+            document.getElementById('judge-comment').innerText = comment;
+            document.getElementById('final-patty').innerText = pattyEmoji;
+        }
+
+    </script>
+</body>
+
+</html>

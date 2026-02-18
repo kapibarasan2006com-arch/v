@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>究極のラーメン職人 - Ultimate Ramen Master</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+JP:wght@400;900&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #2b1d14;
+            color: #fff;
+        }
+
+        .pixel-font {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .bowl {
+            width: 250px;
+            height: 250px;
+            background: #fff;
+            border-radius: 50%;
+            border: 8px solid #d32f2f;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .soup {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            /* Empty */
+            transition: background 0.5s;
+            z-index: 0;
+        }
+
+        .soup.shoyu {
+            background: radial-gradient(circle at 30% 30%, #5d4037, #3e2723);
+        }
+
+        .soup.miso {
+            background: radial-gradient(circle at 30% 30%, #ffcc80, #ef6c00);
+        }
+
+        .soup.shio {
+            background: radial-gradient(circle at 30% 30%, #fff9c4, #fbc02d);
+        }
+
+        .noodles {
+            width: 70%;
+            height: 70%;
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            background: repeating-linear-gradient(45deg, #fceeb5, #fceeb5 5px, #f0e68c 6px, #f0e68c 10px);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.5s;
+            z-index: 1;
+        }
+
+        .topping {
+            position: absolute;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform: scale(0);
+            z-index: 10;
+        }
+
+        .topping.placed {
+            transform: scale(1);
+        }
+
+        .chashu {
+            width: 60px;
+            height: 60px;
+            background: #8d6e63;
+            border-radius: 50%;
+            border: 3px solid #5d4037;
+            box-shadow: inset 0 0 10px #3e2723;
+        }
+
+        .egg {
+            width: 40px;
+            height: 50px;
+            background: #fff;
+            border-radius: 40% 60% 60% 40% / 50% 60% 40% 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .egg::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: #ffeb3b;
+            border-radius: 50%;
+            top: 12px;
+            left: 8px;
+            box-shadow: 0 0 5px #fbc02d;
+        }
+
+        .nori {
+            width: 40px;
+            height: 60px;
+            background: #1b1b1b;
+            transform: rotate(10deg);
+        }
+
+        .negi {
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border: 4px dotted #4caf50;
+            border-radius: 50%;
+        }
+
+        .steam {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            filter: blur(8px);
+            animation: steamUp 2s infinite;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        @keyframes steamUp {
+            0% {
+                transform: translateY(0) scale(1);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-50px) scale(2);
+                opacity: 0;
+            }
+        }
+
+        .btn-action {
+            @apply px-4 py-3 rounded-lg font-bold shadow-lg transform active:scale-95 transition-all text-sm md:text-base;
+        }
+
+        .btn-ingredient {
+            @apply w-16 h-16 md:w-20 md:h-20 rounded-full flex flex-col items-center justify-center border-4 border-transparent hover:scale-105 active:scale-95 shadow-md bg-white text-gray-800 transition-all font-bold text-xs;
+        }
+
+        .btn-ingredient.active {
+            @apply border-yellow-400 ring-2 ring-yellow-200;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header -->
+    <div class="mb-6 text-center">
+        <h1 class="text-3xl md:text-4xl text-yellow-400 pixel-font mb-2 drop-shadow-md">究極のラーメン</h1>
+        <div class="bg-black/30 px-4 py-2 rounded-full inline-block">
+            <span class="text-gray-300 text-xs pixel-font">SCORE:</span>
+            <span id="score" class="text-2xl font-bold text-white pixel-font">0</span>
+        </div>
+    </div>
+
+    <!-- Game Area -->
+    <div class="flex flex-col md:flex-row gap-8 items-center justify-center w-full max-w-4xl">
+
+        <!-- Action Panel Left (Base) -->
+        <div class="flex flex-col gap-4 order-2 md:order-1">
+            <div class="text-xs text-gray-400 text-center font-bold mb-1">SOUP & NOODLES</div>
+            <button onclick="setSoup('shoyu')" class="btn-action bg-amber-900 text-white hover:bg-amber-800">醤油
+                (Shoyu)</button>
+            <button onclick="setSoup('miso')" class="btn-action bg-orange-600 text-white hover:bg-orange-500">味噌
+                (Miso)</button>
+            <button onclick="setSoup('shio')" class="btn-action bg-yellow-200 text-yellow-900 hover:bg-yellow-100">塩
+                (Shio)</button>
+            <button onclick="boilNoodles()" id="btn-boil"
+                class="btn-action bg-white text-gray-800 border-2 border-gray-300 hover:bg-gray-100 mt-4 relative overflow-hidden">
+                <span id="boil-text">麺を茹でる</span>
+                <div id="boil-bar"
+                    class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-[3000ms] w-0"></div>
+            </button>
+        </div>
+
+        <!-- Ramen View -->
+        <div class="order-1 md:order-2 relative">
+            <div id="bowl" class="bowl">
+                <div id="soup" class="soup"></div>
+                <div id="noodles" class="noodles"></div>
+                <div id="toppings-area"></div>
+            </div>
+            <div id="steam-container"></div>
+            <div id="feedback"
+                class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-4xl font-black text-yellow-500 drop-shadow-lg opacity-0 pointer-events-none whitespace-nowrap z-50 transition-all">
+                DELICIOUS!
+            </div>
+        </div>
+
+        <!-- Action Panel Right (Toppings) -->
+        <div class="flex flex-col gap-2 order-3">
+            <div class="text-xs text-gray-400 text-center font-bold mb-1">TOPPINGS</div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="addTopping('chashu')" class="btn-ingredient">
+                    <span class="text-2xl">🍖</span>
+                    チャーシュー
+                </button>
+                <button onclick="addTopping('egg')" class="btn-ingredient">
+                    <span class="text-2xl">🥚</span>
+                    味玉
+                </button>
+                <button onclick="addTopping('nori')" class="btn-ingredient">
+                    <span class="text-2xl">⬛</span>
+                    海苔
+                </button>
+                <button onclick="addTopping('negi')" class="btn-ingredient">
+                    <span class="text-2xl">🌿</span>
+                    ネギ
+                </button>
+            </div>
+            <button onclick="serveRamen()"
+                class="mt-4 btn-action bg-red-600 text-white hover:bg-red-500 w-full pixel-font py-4 text-xl shadow-red-900/50">
+                提供する (SERVE)
+            </button>
+        </div>
+    </div>
+
+    <div class="mt-8">
+        <a href="index.html"
+            class="text-gray-500 hover:text-white transition text-xs pixel-font flex items-center gap-2">
+            <span>
+                << /span> HOME
+        </a>
+    </div>
+
+    <!-- Logic -->
+    <script>
+        const state = {
+            soup: null,
+            noodles: false,
+            toppings: [],
+            isBoiling: false,
+            score: 0
+        };
+
+        const els = {
+            soup: document.getElementById('soup'),
+            noodles: document.getElementById('noodles'),
+            toppings: document.getElementById('toppings-area'),
+            boilBar: document.getElementById('boil-bar'),
+            boilText: document.getElementById('boil-text'),
+            score: document.getElementById('score'),
+            feedback: document.getElementById('feedback')
+        };
+
+        // Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+
+            if (type === 'pop') {
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.1);
+                osc.start(); osc.stop(now + 0.1);
+            } else if (type === 'splash') {
+                // Noise buffer or simple low tone
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(100, now);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else if (type === 'done') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.linearRampToValueAtTime(800, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.4);
+                osc.start(); osc.stop(now + 0.4);
+            }
+        }
+
+        function setSoup(type) {
+            state.soup = type;
+            els.soup.className = `soup ${type}`;
+            playSound('splash');
+            createParticles(10);
+        }
+
+        function boilNoodles() {
+            if (state.isBoiling || state.noodles) return;
+            state.isBoiling = true;
+            els.boilText.textContent = "茹で中...";
+            els.boilBar.style.width = '100%';
+
+            setTimeout(() => {
+                state.isBoiling = false;
+                state.noodles = true;
+                els.noodles.style.opacity = '1';
+                els.boilText.textContent = "茹で完了";
+                els.boilBar.style.width = '0%';
+                els.boilBar.style.transition = 'none';
+                playSound('done');
+                createSteam();
+            }, 3000);
+        }
+
+        function addTopping(type) {
+            if (!state.noodles) {
+                showFeedback("まずは麺！", "gray");
+                return;
+            }
+            const id = Date.now();
+            const el = document.createElement('div');
+            el.className = `topping ${type}`;
+
+            // Random Position within bowl
+            const r = 80; // radius
+            const angle = Math.random() * Math.PI * 2;
+            const dist = Math.random() * r;
+            const x = 125 + Math.cos(angle) * dist - (type === 'chashu' ? 30 : 20);
+            const y = 125 + Math.sin(angle) * dist - (type === 'chashu' ? 30 : 25);
+
+            el.style.left = `${x}px`;
+            el.style.top = `${y}px`;
+
+            els.toppings.appendChild(el);
+            state.toppings.push(type);
+            playSound('pop');
+
+            requestAnimationFrame(() => el.classList.add('placed'));
+        }
+
+        function serveRamen() {
+            if (!state.soup || !state.noodles) {
+                showFeedback("具材不足...", "#ef4444");
+                return;
+            }
+
+            let points = 1000;
+            // Flavor bonus?
+            // Topping bonus
+            points += state.toppings.length * 200;
+
+            state.score += points;
+            els.score.textContent = state.score.toLocaleString();
+
+            showFeedback("究極の一杯！", "#eab308");
+            playSound('done');
+
+            // Reset after delay
+            setTimeout(() => {
+                resetGame();
+            }, 2000);
+        }
+
+        function resetGame() {
+            state.soup = null;
+            state.noodles = false;
+            state.toppings = [];
+            state.isBoiling = false;
+
+            els.soup.className = 'soup';
+            els.noodles.style.opacity = '0';
+            els.toppings.innerHTML = '';
+            els.boilText.textContent = "麺を茹でる";
+            els.boilBar.style.transition = 'width 3s linear'; // Restore transition
+
+            const steam = document.getElementById('steam-container');
+            steam.innerHTML = '';
+        }
+
+        function showFeedback(text, color) {
+            els.feedback.textContent = text;
+            els.feedback.style.color = color;
+            els.feedback.style.opacity = '1';
+            els.feedback.style.transform = 'translate(-50%, -80%) scale(1.2)';
+            setTimeout(() => {
+                els.feedback.style.opacity = '0';
+                els.feedback.style.transform = 'translate(-50%, -50%) scale(1)';
+            }, 1000);
+        }
+
+        function createParticles(count) {
+            // Ripple effect or splash could go here
+        }
+
+        function createSteam() {
+            const container = document.getElementById('steam-container');
+            for (let i = 0; i < 5; i++) {
+                const s = document.createElement('div');
+                s.className = 'steam';
+                s.style.width = (Math.random() * 20 + 20) + 'px';
+                s.style.height = (Math.random() * 20 + 20) + 'px';
+                s.style.left = (125 + (Math.random() - 0.5) * 100) + 'px';
+                s.style.top = '100px';
+                s.style.animationDelay = (Math.random() * 2) + 's';
+                container.appendChild(s);
+            }
+        }
+    </script>
+</body>
+
+</html>

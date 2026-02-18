@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ホワイトユニバース</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <nav>
+            <a href="index.html" class="logo">ホワイトユニバース</a>
+            <ul class="nav-links">
+                <li><a href="index.html">ホーム</a></li>
+                <li><a href="game.html">ゲームで遊ぶ</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section class="hero">
+            <h1>ゲームセレクト</h1>
+            <p>Geminiと一緒に作ったゲームコレクション</p>
+
+            <button onclick="playRandom()" class="random-btn">
+                🎲 おまかせで遊ぶ
+            </button> <!-- Added Random Button -->
+
+            <div class="game-grid">
+                <!-- Game Card: Siritori -->
+                <a href="siritori.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">💬</div>
+                        <h2>AIしりとり</h2>
+                        <p>フレンドリーAIと<br>しりとり対決</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+                <!-- Game Card: Takoyaki -->
+                <a href="takoyaki.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">🐙</div>
+                        <h2>たこ焼き職人</h2>
+                        <p>究極のたこ焼きを<br>焼き上げろ！</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+                <!-- Game Card: Ball Toss -->
+                <a href="balltoss.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">⚾</div>
+                        <h2>ボール投げ</h2>
+                        <p>狙って投げろ！<br>爽快ボール投げ</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+                <!-- Game Card: Ramen -->
+                <a href="ramen.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">🍜</div>
+                        <h2>究極のラーメン</h2>
+                        <p>スープと具材を選んで<br>至高の一杯を作れ</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+                <!-- Game Card: Curry -->
+                <a href="curry.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">🍛</div>
+                        <h2>カレー職人</h2>
+                        <p>具材と火加減が命<br>究極の一皿</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+                <!-- Game Card: Udon -->
+                <a href="udon.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">🍲</div>
+                        <h2>うどん職人</h2>
+                        <p>コシが命！<br>本格うどん作り</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+                <!-- Game Card: Hamburg -->
+                <a href="hamburg.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">🍖</div>
+                        <h2>究極のハンバーグ</h2>
+                        <p>挽く・こねる・焼く！<br>肉汁あふれる至高の味</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+                <!-- Game Card: Timer Battle -->
+                <a href="timer_battle.html" class="game-card">
+                    <div class="card-content">
+                        <div class="card-icon">⏱️</div>
+                        <h2>対戦タイマー</h2>
+                        <p>10秒ピッタリで止めろ！<br>2人対戦バトル</p>
+                        <span class="play-btn">遊ぶ</span>
+                    </div>
+                </a>
+
+            </div>
+        </section>
+
+        <!-- Comment Section -->
+        <section class="comments-section">
+            <h2 class="section-title">プレイヤーログ</h2>
+
+            <div class="comment-form">
+                <input type="text" id="p-name" placeholder="名前" maxlength="10">
+                <input type="text" id="p-msg" placeholder="メッセージ" maxlength="30">
+                <button onclick="postComment()">データ送信</button>
+            </div>
+
+            <div id="comment-list" class="comment-list">
+                <!-- Comments will look like logs -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 My Game Portfolio</p>
+    </footer>
+
+    <!-- Interactive Scripts -->
+    <script>
+        // --- Random Game ---
+        const games = ['siritori.html', 'takoyaki.html', 'balltoss.html', 'ramen.html', 'curry.html', 'udon.html', 'hamburg.html', 'timer_battle.html'];
+        function playRandom() {
+            const random = games[Math.floor(Math.random() * games.length)];
+            window.location.href = random;
+        }
+
+        // --- Mouse Trail (Snowflakes) ---
+        document.addEventListener('mousemove', (e) => {
+            if (Math.random() > 0.2) return; // Optimization
+            const p = document.createElement('div');
+            p.className = 'trail-particle';
+            p.style.left = e.pageX + 'px';
+            p.style.top = e.pageY + 'px';
+            // Randomly use snow or heart
+            p.innerHTML = Math.random() > 0.8 ? '♥' : '❄️';
+            p.style.fontSize = Math.random() * 10 + 10 + 'px';
+            p.style.background = 'transparent';
+            p.style.color = Math.random() > 0.5 ? '#74b9ff' : '#ff6b81';
+
+            document.body.appendChild(p);
+            setTimeout(() => p.remove(), 1500);
+        });
+
+        // --- Konami Code ---
+        const code = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let inputPos = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === code[inputPos]) {
+                inputPos++;
+                if (inputPos === code.length) {
+                    activateEasterEgg();
+                    inputPos = 0;
+                }
+            } else {
+                inputPos = 0;
+            }
+        });
+
+        function activateEasterEgg() {
+            alert('KONAMI CODE ACTIVATED! SUPER MODE ON!');
+            document.documentElement.style.filter = 'hue-rotate(90deg) contrast(1.2)';
+            document.body.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                document.documentElement.style.filter = 'none';
+                document.body.style.transform = 'none';
+            }, 5000);
+        }
+
+        // --- Comment System (LocalStorage) ---
+        function loadComments() {
+            const list = document.getElementById('comment-list');
+            list.innerHTML = '';
+            let data = JSON.parse(localStorage.getItem('mySiteComments') || '[]');
+
+            // Dummy Data Generator (Aggressive)
+            // Always ensure we have at least 15 comments for the lively feel
+            if (data.length < 15) {
+                const fakes = [
+                    { name: 'KAZUMA', msg: 'わーい！新しいデザインかわいい！', date: '09:12' },
+                    { name: 'SnowMan', msg: '雪が降ってて癒される～❄️', date: '10:45' },
+                    { name: 'ChocoLover', msg: 'バレンタイン気分あがる！', date: '11:20' },
+                    { name: 'Guest', msg: 'ホワイトユニバース…名前カッコいい', date: '12:05' },
+                    { name: 'UdonMaster', msg: 'うどん職人でハイスコア出した！', date: '13:30' },
+                    { name: 'Valentine', msg: '隠し要素のハート見つけた？', date: '14:15' },
+                    { name: 'CurryFan', msg: 'やっぱ冬はカレーだよね', date: '15:00' },
+                    { name: 'Mochi', msg: 'お腹すいてきた…', date: '15:30' },
+                    { name: 'RetroGamer', msg: 'ゲームのドット絵が好き', date: '16:10' },
+                    { name: 'Admin', msg: '遊んでくれてありがとう！', date: '16:45' },
+                    { name: 'TakoTako', msg: 'たこ焼き100個焼きたい', date: '17:20' },
+                    { name: 'Spicy', msg: 'カレー辛口モード欲しいｗ', date: '18:00' },
+                    { name: 'Siritori', msg: '「ん」で負けた…悔しい', date: '18:45' },
+                    { name: 'BallThrow', msg: 'ボール投げの爽快感よ', date: '19:30' },
+                    { name: 'WhiteCat', msg: 'にゃーん', date: '20:15' }
+                ];
+                // Add fakes to existing data
+                data = [...data, ...fakes];
+                // Sort by time roughly (optional, but let's keep order)
+
+                // Limit to 100
+                if (data.length > 100) data = data.slice(data.length - 100);
+
+                localStorage.setItem('mySiteComments', JSON.stringify(data));
+            }
+
+            // Display in reverse chronological order (newest first)
+            data.slice().reverse().forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'log-entry';
+                div.innerHTML = `<span class="log-time">[${c.date}]</span> <span class="log-user">${c.name}</span>: ${c.msg}`;
+                list.appendChild(div);
+            });
+
+            if (data.length === 0) {
+                list.innerHTML = '<div class="log-entry" style="opacity:0.5;">NO DATA FOUND...</div>';
+            }
+        }
+
+        function postComment() {
+            const name = document.getElementById('p-name').value.trim() || '名無し';
+            const msg = document.getElementById('p-msg').value.trim();
+            if (!msg) return;
+
+            const data = JSON.parse(localStorage.getItem('mySiteComments') || '[]');
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, 0)}:${String(now.getMinutes()).padStart(2, 0)}`;
+
+            data.push({ name: name, msg: msg, date: timeStr });
+            if (data.length > 100) data.shift(); // Limit to 100
+
+            localStorage.setItem('mySiteComments', JSON.stringify(data));
+            document.getElementById('p-msg').value = '';
+            loadComments();
+        }
+
+        // Init
+        loadComments();
+    </script>
+</body>
+
+</html>

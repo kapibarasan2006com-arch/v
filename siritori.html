@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>しりとり - フレンドリーAI (安定版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            overflow: hidden;
+        }
+
+        .chat-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        .word-card {
+            animation: slideIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #6366f1;
+            border-radius: 50%;
+            display: inline-block;
+            animation: typing 1s infinite ease-in-out;
+        }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.4); opacity: 1; }
+        }
+
+        .main-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .status-pill {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #6366f1;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-lg h-[90vh] flex flex-col bg-white rounded-[2rem] overflow-hidden shadow-2xl border border-slate-200">
+        <!-- Header -->
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-white z-10">
+            <div class="flex items-center gap-4">
+                <div class="p-3 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
+                    <i data-lucide="message-circle-code" class="text-white w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight text-slate-800 leading-none">しりとり</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">Friendly AI / Fixed Rules</p>
+                </div>
+            </div>
+            
+            <div class="text-right">
+                <div id="chain-count" class="text-3xl font-black text-indigo-600 leading-none">0</div>
+                <div class="text-[9px] text-slate-400 font-black uppercase tracking-widest mt-1">れんさ</div>
+            </div>
+        </div>
+
+        <!-- Info Bar -->
+        <div class="main-gradient px-6 py-4 flex justify-between items-center relative z-10 shadow-lg">
+            <div class="flex items-center gap-8 relative">
+                <div class="flex flex-col text-center">
+                    <span class="text-[9px] text-indigo-200 font-bold uppercase text-center">Next</span>
+                    <span id="target-char" class="text-4xl font-black text-white leading-none drop-shadow-md">り</span>
+                </div>
+                <div class="w-px h-10 bg-slate-500/30"></div>
+                <div class="flex flex-col text-center">
+                    <span class="text-[9px] text-indigo-200 font-bold uppercase text-center">Score</span>
+                    <span id="score-display" class="text-2xl font-bold text-white leading-none">0000</span>
+                </div>
+            </div>
+            
+            <div class="flex flex-col items-end gap-1 relative">
+                <div class="status-pill px-3 py-1 rounded-full text-[10px] font-bold flex items-center gap-2">
+                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    ACTIVE
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Area -->
+        <div id="chat-box" class="flex-1 overflow-y-auto p-6 space-y-5 chat-container bg-slate-50/30"></div>
+
+        <!-- Status Message -->
+        <div id="status-msg" class="px-6 py-2 text-[10px] font-bold text-center text-slate-400 uppercase tracking-widest border-t border-slate-100 h-8 flex items-center justify-center bg-white">
+            Waiting for input
+        </div>
+
+        <!-- Input Area -->
+        <div class="p-6 bg-white border-t border-slate-100">
+            <form id="battle-form" class="relative flex gap-3">
+                <button 
+                    type="button"
+                    id="retire-btn"
+                    title="おわる"
+                    class="w-14 h-14 bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center transition-all hover:bg-slate-200 hover:text-slate-600 active:scale-90 disabled:opacity-50"
+                >
+                    <i data-lucide="log-out" class="w-6 h-6"></i>
+                </button>
+                <input 
+                    type="text" 
+                    id="user-input" 
+                    placeholder="ことばを　いれてね..." 
+                    class="flex-1 bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 transition-all text-lg font-medium text-slate-800 disabled:opacity-50"
+                    autocomplete="off"
+                >
+                <button 
+                    type="submit" 
+                    id="send-btn"
+                    class="w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl flex items-center justify-center transition-all active:scale-95 shadow-lg shadow-indigo-200 disabled:opacity-50"
+                >
+                    <i data-lucide="send" class="w-8 h-8"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Final Result Modal -->
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-slate-900/60 backdrop-blur-md p-4">
+        <div class="bg-white w-full max-w-sm rounded-[3rem] p-10 shadow-2xl text-center">
+            <div id="result-icon" class="w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i data-lucide="award" class="w-12 h-12 text-indigo-600"></i>
+            </div>
+            <h2 id="modal-title" class="text-3xl font-black mb-2 text-slate-800 tracking-tighter uppercase">しゅうりょう</h2>
+            <p id="modal-desc" class="text-slate-500 mb-8 font-medium italic"></p>
+            <div class="bg-slate-50 rounded-3xl p-8 mb-10 border border-slate-100">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-black uppercase mb-1">連鎖数</div>
+                        <div id="final-chains" class="text-4xl font-black text-indigo-600">0</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] text-slate-400 font-black uppercase mb-1">スコア</div>
+                        <div id="final-score" class="text-4xl font-black text-slate-800">0000</div>
+                    </div>
+                </div>
+            </div>
+            <button onclick="restartGame()" class="w-full py-6 bg-indigo-600 hover:bg-indigo-700 text-white rounded-3xl font-black text-xl shadow-lg transition-all active:scale-95">
+                もういちど遊ぶ
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = ""; 
+        const MODEL_NAME = "gemini-2.5-flash-preview-09-2025";
+        
+        let gameState = {
+            turn: 1,
+            score: 0,
+            chain: 0,
+            lastChar: "り",
+            usedWords: new Set(),
+            isAITurn: false,
+            isGameOver: false,
+            retryCount: 0
+        };
+
+        const elements = {
+            chatBox: document.getElementById('chat-box'),
+            userInput: document.getElementById('user-input'),
+            battleForm: document.getElementById('battle-form'),
+            statusMsg: document.getElementById('status-msg'),
+            targetChar: document.getElementById('target-char'),
+            score: document.getElementById('score-display'),
+            chain: document.getElementById('chain-count'),
+            modal: document.getElementById('modal'),
+            sendBtn: document.getElementById('send-btn'),
+            retireBtn: document.getElementById('retire-btn')
+        };
+
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSE(type) {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523, now);
+                osc.frequency.exponentialRampToValueAtTime(1046, now + 0.1);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.2);
+                osc.start(); osc.stop(now + 0.2);
+            } else if (type === 'ai-word') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(659, now);
+                osc.frequency.exponentialRampToValueAtTime(440, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            } else if (type === 'error') {
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(130, now);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(); osc.stop(now + 0.3);
+            }
+        }
+
+        lucide.createIcons();
+
+        function katakanaToHiragana(src) {
+            return src.replace(/[\u30a1-\u30f6]/g, (m) => String.fromCharCode(m.charCodeAt(0) - 0x60));
+        }
+
+        function getLastChar(word) {
+            const nw = katakanaToHiragana(word);
+            let last = nw.slice(-1);
+            if (last === "ー" && nw.length > 1) last = nw.slice(-2, -1);
+            const map = {'ゃ':'や','ゅ':'ゆ','ょ':'よ','ぁ':'あ','ぃ':'い','ぅ':'う','ぇ':'え','ぉ':'お','っ':'つ', 'ゎ':'わ', 'ゐ':'い', 'ゑ':'え', 'を':'お'};
+            return map[last] || last;
+        }
+
+        function addBubble(sender, word, detail = "") {
+            const isAI = sender === 'AI';
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex flex-col ${isAI ? 'items-start' : 'items-end'} word-card w-full`;
+            
+            if (sender === 'Thinking') {
+                wrapper.id = 'ai-thinking-bubble';
+                wrapper.innerHTML = `<div class="px-6 py-4 rounded-2xl bg-white border border-slate-200 shadow-sm flex gap-1.5"><span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span></div>`;
+            } else {
+                let colorClass = isAI ? 'bg-white text-slate-800 border border-slate-200 shadow-sm font-medium' : 'bg-indigo-600 text-white shadow-lg font-bold';
+                const bubbleId = !isAI ? 'latest-user-bubble' : '';
+                
+                wrapper.innerHTML = `
+                    <div ${bubbleId ? `id="${bubbleId}"` : ''} class="px-6 py-4 rounded-2xl max-w-[85%] ${colorClass}">
+                        <div class="text-xl tracking-tight">${word}</div>
+                        ${detail ? `<div class="text-[10px] mt-1.5 opacity-60 font-medium italic tracking-wider">${detail}</div>` : ''}
+                    </div>`;
+            }
+            elements.chatBox.appendChild(wrapper);
+            elements.chatBox.scrollTop = elements.chatBox.scrollHeight;
+        }
+
+        function setStatus(text, isError = false) {
+            elements.statusMsg.textContent = text;
+            elements.statusMsg.className = `bg-zinc-950 px-6 py-2 text-[10px] font-black text-center uppercase tracking-widest border-t border-red-900/20 h-8 flex items-center justify-center bg-white ${isError ? 'text-red-500' : 'text-slate-400'}`;
+        }
+
+        async function processTurn(word, isRetry = false) {
+            const userEndingChar = getLastChar(word);
+
+            if (!isRetry) {
+                gameState.isAITurn = true;
+                gameState.retryCount = 0;
+                elements.userInput.disabled = true;
+                elements.sendBtn.disabled = true;
+                elements.retireBtn.disabled = true;
+                addBubble('User', word);
+            }
+
+            if (!document.getElementById('ai-thinking-bubble')) {
+                addBubble('Thinking');
+            }
+            setStatus(isRetry ? `AI SYNCING (${gameState.retryCount})...` : "AI Thinking...");
+
+            // システムプロンプトとスキーマを厳密に設定
+            const systemPrompt = "しりとりゲーム。かんじは　ぜったいに　つかわないで。ひらがなとカタカナだけ。AIはフレンドリーにふるまって。";
+            const userQuery = `ユーザー入力: "${word}"。ルール: 「${gameState.lastChar}」開始。AIの開始文字: 「${userEndingChar}」。既出禁止: [${Array.from(gameState.usedWords).join(",")}]。AIは「ん」で終わる言葉を言ったら負け。判定は緩めに。JSONで返して。`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userQuery }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] },
+                        generationConfig: { 
+                            responseMimeType: "application/json",
+                            responseSchema: {
+                                type: "OBJECT",
+                                properties: {
+                                    valid: { type: "BOOLEAN" },
+                                    error: { type: "STRING" },
+                                    aiWord: { type: "STRING" },
+                                    read: { type: "STRING" },
+                                    mean: { type: "STRING" }
+                                },
+                                required: ["valid", "aiWord"]
+                            }
+                        }
+                    })
+                });
+
+                if (!response.ok) throw new Error("API Network Error");
+
+                const data = await response.json();
+                const result = JSON.parse(data.candidates[0].content.parts[0].text);
+
+                document.getElementById('ai-thinking-bubble')?.remove();
+
+                if (!result.valid) {
+                    playSE('error');
+                    setStatus(result.error || "INVALID WORD", true);
+                    document.getElementById('latest-user-bubble')?.parentElement?.remove();
+                    unlockUI();
+                } else {
+                    const aiNorm = katakanaToHiragana(result.aiWord || "");
+                    
+                    // AI負け判定 (んがついた場合)
+                    if (aiNorm.endsWith("ん")) {
+                        gameState.usedWords.add(word);
+                        addBubble('AI', result.aiWord, "あ！『ん』がついちゃった！まいりました！");
+                        gameOver("あなたの勝ち！", "AIが『ん』で終わる言葉を言いました！");
+                        return;
+                    }
+
+                    document.getElementById('latest-user-bubble').id = ""; 
+                    gameState.usedWords.add(word);
+                    gameState.score += (word.length * 10);
+                    gameState.chain++;
+                    
+                    // ユーザー負け判定
+                    if (katakanaToHiragana(word).endsWith("ん")) {
+                        gameOver("おしまい", "「ん」がついたよ！良いしりとりでした。");
+                        return;
+                    }
+
+                    playSE('ai-word');
+                    gameState.usedWords.add(result.aiWord);
+                    addBubble('AI', result.aiWord, `${result.read || ""}：${result.mean || ""}`);
+                    gameState.lastChar = getLastChar(result.aiWord);
+                    gameState.turn++;
+                    gameState.chain++;
+                    setStatus("Your turn");
+                    unlockUI();
+                }
+                updateStatsUI();
+
+            } catch (e) {
+                if (gameState.retryCount < 4) {
+                    gameState.retryCount++;
+                    const delay = 1000 * Math.pow(2, gameState.retryCount - 1);
+                    setTimeout(() => processTurn(word, true), delay);
+                } else {
+                    document.getElementById('ai-thinking-bubble')?.remove();
+                    playSE('error');
+                    setStatus("AI CONNECTION FAILED", true);
+                    unlockUI();
+                }
+            }
+        }
+
+        function unlockUI() {
+            gameState.isAITurn = false;
+            elements.userInput.disabled = false;
+            elements.sendBtn.disabled = false;
+            elements.retireBtn.disabled = false;
+            elements.userInput.focus();
+        }
+
+        function updateStatsUI() {
+            elements.score.textContent = String(gameState.score).padStart(4, '0');
+            elements.chain.textContent = gameState.chain;
+            elements.targetChar.textContent = gameState.lastChar;
+        }
+
+        function gameOver(title, desc) {
+            gameState.isGameOver = true;
+            playSE('retire');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-desc').textContent = desc;
+            document.getElementById('final-score').textContent = String(gameState.score).padStart(4, '0');
+            document.getElementById('final-chains').textContent = gameState.chain;
+            
+            const icon = document.getElementById('result-icon');
+            if (title.includes("勝ち")) {
+                icon.innerHTML = `<i data-lucide="party-popper" class="w-12 h-12 text-amber-500"></i>`;
+                icon.className = "w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6";
+            } else {
+                icon.innerHTML = `<i data-lucide="award" class="w-12 h-12 text-indigo-600"></i>`;
+                icon.className = "w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6";
+            }
+            lucide.createIcons();
+            elements.modal.classList.remove('hidden');
+        }
+
+        function restartGame() {
+            gameState = { turn: 1, score: 0, chain: 0, lastChar: "り", usedWords: new Set(), isAITurn: false, isGameOver: false, retryCount: 0 };
+            elements.chatBox.innerHTML = "";
+            elements.modal.classList.add('hidden');
+            updateStatsUI();
+            addBubble('AI', "しりとりを始めましょう！最初は「り」だよ。");
+            unlockUI();
+        }
+
+        elements.battleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            initAudio();
+            if (gameState.isAITurn || gameState.isGameOver) return;
+            const word = elements.userInput.value.trim();
+            elements.userInput.value = "";
+            if (!word || !/^[ぁ-んァ-ヶー]+$/.test(word)) return setStatus("ひらがな・カタカナで入力してね", true);
+            if (word.length < 2) return setStatus("2もじいじょうだよ", true);
+            if (katakanaToHiragana(word)[0] !== gameState.lastChar) return setStatus(`「${gameState.lastChar}」からだよ`, true);
+            if (gameState.usedWords.has(word)) return setStatus("もう使ったよ", true);
+            processTurn(word);
+        });
+
+        elements.retireBtn.addEventListener('click', () => {
+            if (gameState.isAITurn || gameState.isGameOver) return;
+            initAudio();
+            gameOver("おしまい", "お疲れ様でした。楽しかったね！");
+        });
+
+        window.onload = () => {
+            addBubble('AI', "こんにちは！しりとりしましょう。最初は「り」からはじめてね。");
+        };
+    </script>
+</body>
+</html>

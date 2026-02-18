@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2人対戦：タイマーストップバトル</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@800&family=Press+Start+2P&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            overflow: hidden;
+            /* Prevent scrolling during play */
+            background: #222;
+        }
+
+        #game-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .player-zone {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        #p1-zone {
+            background-color: #ff6b81;
+            /* Red/Pink */
+            border-right: 5px solid #fff;
+        }
+
+        #p2-zone {
+            background-color: #74b9ff;
+            /* Blue */
+        }
+
+        .player-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5rem;
+            color: rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+        }
+
+        .timer-display {
+            font-family: 'Courier New', monospace;
+            font-size: 5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 4px 4px 0px rgba(0, 0, 0, 0.2);
+        }
+
+        .key-hint {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .result-msg {
+            font-size: 2rem;
+            color: #fff;
+            font-weight: bold;
+            margin-top: 20px;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        #center-control {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 100;
+            text-align: center;
+        }
+
+        .start-btn {
+            padding: 20px 40px;
+            font-size: 2rem;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: #fff;
+            border: 5px solid #e1b12c;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 rgba(0, 0, 0, 0.2);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .start-btn:active {
+            transform: translate(-50%, -50%) translateY(5px);
+            box-shadow: 0 5px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        #target-display {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 2rem;
+            z-index: 100;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .win-effect {
+            animation: winPulse 0.5s infinite alternate;
+        }
+
+        @keyframes winPulse {
+            from {
+                filter: brightness(1);
+            }
+
+            to {
+                filter: brightness(1.2);
+            }
+        }
+
+        .lose-effect {
+            filter: grayscale(0.8);
+        }
+
+        #home-link {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            z-index: 100;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="target-display">TARGET: 10.00s</div>
+
+    <div id="game-wrapper">
+        <!-- Player 1 -->
+        <div id="p1-zone" class="player-zone">
+            <div class="player-label">PLAYER 1</div>
+            <div id="p1-timer" class="timer-display">0.00</div>
+            <div class="result-msg" id="p1-result">WIN!</div>
+            <div class="key-hint">Press 'A'</div>
+        </div>
+
+        <!-- Player 2 -->
+        <div id="p2-zone" class="player-zone">
+            <div class="player-label">PLAYER 2</div>
+            <div id="p2-timer" class="timer-display">0.00</div>
+            <div class="result-msg" id="p2-result">LOSE...</div>
+            <div class="key-hint">Press 'L'</div>
+        </div>
+    </div>
+
+    <div id="center-control">
+        <button class="start-btn" onclick="startGame()">START</button>
+    </div>
+
+    <a href="index.html" id="home-link">ホームに戻る</a>
+
+    <script>
+        let startTime;
+        let p1Time = null;
+        let p2Time = null;
+        let isRunning = false;
+        let timerInterval;
+        const TARGET = 10.00;
+
+        function startGame() {
+            // Reset
+            p1Time = null;
+            p2Time = null;
+            isRunning = false;
+            clearInterval(timerInterval);
+
+            document.getElementById('p1-timer').innerText = "0.00";
+            document.getElementById('p2-timer').innerText = "0.00";
+            document.getElementById('p1-zone').className = 'player-zone';
+            document.getElementById('p2-zone').className = 'player-zone';
+            document.getElementById('p1-result').style.opacity = '0';
+            document.getElementById('p2-result').style.opacity = '0';
+            document.getElementById('center-control').style.display = 'none';
+
+            // Countdown
+            let count = 3;
+            document.getElementById('target-display').innerText = count;
+
+            let countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    document.getElementById('target-display').innerText = count;
+                } else {
+                    clearInterval(countInterval);
+                    document.getElementById('target-display').innerText = "START! -> 10.00s";
+                    beginTimer();
+                }
+            }, 1000);
+        }
+
+        function beginTimer() {
+            startTime = Date.now();
+            isRunning = true;
+
+            timerInterval = setInterval(() => {
+                const now = Date.now();
+                const elapsed = (now - startTime) / 1000;
+
+                // Blind Mode: Hide after 3 seconds
+                if (elapsed > 3.0 && isRunning) {
+                    if (p1Time === null) document.getElementById('p1-timer').innerText = "??.??";
+                    if (p2Time === null) document.getElementById('p2-timer').innerText = "??.??";
+                } else {
+                    if (p1Time === null) document.getElementById('p1-timer').innerText = elapsed.toFixed(2);
+                    if (p2Time === null) document.getElementById('p2-timer').innerText = elapsed.toFixed(2);
+                }
+
+                // Auto stop if too long (e.g. 30s)
+                if (elapsed > 30) {
+                    finishGame();
+                }
+
+            }, 10); // Update frequently
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!isRunning) return;
+
+            // Player 1: 'a'
+            if (e.key.toLowerCase() === 'a' && p1Time === null) {
+                p1Time = (Date.now() - startTime) / 1000;
+                document.getElementById('p1-timer').innerText = "STOP";
+                checkFinish();
+            }
+
+            // Player 2: 'l'
+            if (e.key.toLowerCase() === 'l' && p2Time === null) {
+                p2Time = (Date.now() - startTime) / 1000;
+                document.getElementById('p2-timer').innerText = "STOP";
+                checkFinish();
+            }
+        });
+
+        function checkFinish() {
+            if (p1Time !== null && p2Time !== null) {
+                finishGame();
+            }
+        }
+
+        function finishGame() {
+            isRunning = false;
+            clearInterval(timerInterval);
+
+            // Show times
+            if (p1Time === null) p1Time = 30.00; // Penalty
+            if (p2Time === null) p2Time = 30.00; // Penalty
+
+            document.getElementById('p1-timer').innerText = p1Time.toFixed(2);
+            document.getElementById('p2-timer').innerText = p2Time.toFixed(2);
+
+            // Calc diff
+            const diff1 = Math.abs(TARGET - p1Time);
+            const diff2 = Math.abs(TARGET - p2Time);
+
+            const p1Res = document.getElementById('p1-result');
+            const p2Res = document.getElementById('p2-result');
+            const p1Zone = document.getElementById('p1-zone');
+            const p2Zone = document.getElementById('p2-zone');
+
+            // Draw
+            if (diff1 === diff2) {
+                p1Res.innerText = "DRAW";
+                p2Res.innerText = "DRAW";
+                p1Res.style.opacity = '1';
+                p2Res.style.opacity = '1';
+            } else if (diff1 < diff2) {
+                // P1 Win
+                p1Res.innerText = "WINNER!";
+                p2Res.innerText = "LOSE...";
+                p1Res.style.opacity = '1';
+                p2Res.style.opacity = '1';
+                p1Zone.classList.add('win-effect');
+                p2Zone.classList.add('lose-effect');
+            } else {
+                // P2 Win
+                p1Res.innerText = "LOSE...";
+                p2Res.innerText = "WINNER!";
+                p1Res.style.opacity = '1';
+                p2Res.style.opacity = '1';
+                p1Zone.classList.add('lose-effect');
+                p2Zone.classList.add('win-effect');
+            }
+
+            // Show visual button again after delay
+            setTimeout(() => {
+                document.getElementById('center-control').style.display = 'block';
+                document.querySelector('.start-btn').innerText = "RETRY";
+            }, 2000);
+        }
+    </script>
+</body>
+
+</html>
