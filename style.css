@@ -1,0 +1,333 @@
+:root {
+    --primary-color: #ff6b81;
+    /* Soft Valentine Pink */
+    --secondary-color: #74b9ff;
+    /* Winter Blue */
+    --background-color: #fff0f5;
+    /* Lavender Blush */
+    --text-color: #574b90;
+    /* Soft Purple Navy */
+    --header-bg: rgba(255, 255, 255, 0.9);
+    --card-bg: #ffffff;
+    --border-color: #ffcccc;
+    /* Light Pink Border */
+    --accent-gold: #e1b12c;
+}
+
+body {
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--background-color);
+    background-image: radial-gradient(#ffeae8 15%, transparent 16%), radial-gradient(#e8f4ff 15%, transparent 16%);
+    background-size: 60px 60px;
+    background-position: 0 0, 30px 30px;
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+/* Elegant Font for Headings */
+h1,
+h2,
+h3,
+.logo,
+.nav-links a,
+.cta-button {
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    /* Soft Rounded Font if available, else fallback */
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+header {
+    background-color: var(--header-bg);
+    border-bottom: 3px solid var(--primary-color);
+    box-shadow: 0 2px 10px rgba(255, 107, 129, 0.2);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+nav {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 800;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-color);
+    font-size: 0.95rem;
+    position: relative;
+    transition: color 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--primary-color);
+}
+
+main {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.hero {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 60px 20px;
+    position: relative;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid white;
+}
+
+.hero h1 {
+    margin: 0 0 15px;
+    font-size: 2.2rem;
+    color: var(--primary-color);
+}
+
+.hero p {
+    font-size: 1.1rem;
+    color: #7f8fa6;
+    margin-bottom: 30px;
+}
+
+/* --- Game Selection Grid --- */
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 40px;
+}
+
+.game-card {
+    display: block;
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px 20px;
+    text-decoration: none;
+    color: var(--text-color);
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 2px solid transparent;
+}
+
+.game-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(255, 107, 129, 0.2);
+    border-color: var(--primary-color);
+}
+
+.card-icon {
+    font-size: 3.5rem;
+    margin-bottom: 15px;
+    transition: transform 0.3s;
+}
+
+.game-card:hover .card-icon {
+    transform: scale(1.1) rotate(10deg);
+}
+
+.game-card h2 {
+    font-size: 1.3rem;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.game-card p {
+    font-size: 0.95rem;
+    color: #999;
+    margin-bottom: 20px;
+}
+
+.play-btn {
+    display: inline-block;
+    padding: 10px 28px;
+    background: var(--background-color);
+    color: var(--primary-color);
+    font-weight: bold;
+    border-radius: 50px;
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.game-card:hover .play-btn {
+    background: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(255, 107, 129, 0.4);
+}
+
+footer {
+    text-align: center;
+    padding: 30px;
+    margin-top: 60px;
+    color: #a4b0be;
+    font-size: 0.9rem;
+}
+
+/* --- Enhancements (February Style) --- */
+
+/* Random Button */
+.random-btn {
+    display: inline-block;
+    margin: 20px auto;
+    padding: 15px 40px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+    transition: transform 0.2s;
+}
+
+.random-btn:hover {
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6);
+}
+
+/* Mouse Trail (Snow/Hearts) */
+.trail-particle {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #ff7675;
+    /* Salmon Pink */
+    border-radius: 50%;
+    /* Can be changed to heart shape in CSS if needed, but circles are fine snow */
+    pointer-events: none;
+    animation: fallDown 1s forwards;
+    z-index: 9999;
+    opacity: 0.7;
+}
+
+@keyframes fallDown {
+    to {
+        opacity: 0;
+        transform: translateY(30px) rotate(45deg);
+    }
+}
+
+/* Comment Section (Diary Style) */
+.comments-section {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 40px;
+    background-color: #fff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+}
+
+.section-title {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    font-size: 1.6rem;
+    position: relative;
+    display: inline-block;
+}
+
+.section-title::after {
+    content: '♥';
+    font-size: 0.8em;
+    color: var(--primary-color);
+    position: absolute;
+    top: -15px;
+    right: -20px;
+    transform: rotate(15deg);
+}
+
+.comment-form {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.comment-form input {
+    background: #f9f9f9;
+    border: 2px solid #eee;
+    color: #555;
+    padding: 12px 15px;
+    border-radius: 10px;
+    transition: border 0.3s;
+}
+
+.comment-form input:focus {
+    border-color: var(--secondary-color);
+    outline: none;
+}
+
+.comment-form input#p-name {
+    width: 140px;
+}
+
+.comment-form input#p-msg {
+    flex: 1;
+    min-width: 250px;
+}
+
+.comment-form button {
+    background: var(--secondary-color);
+    color: #fff;
+    border: none;
+    padding: 12px 25px;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 10px;
+    transition: background 0.3s;
+}
+
+.comment-form button:hover {
+    background: #54a0ff;
+}
+
+.comment-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.log-entry {
+    margin-bottom: 15px;
+    padding: 15px;
+    background: #fdfdfd;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary-color);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+}
+
+.log-time {
+    color: #aaa;
+    font-size: 0.8rem;
+    margin-right: 10px;
+}
+
+.log-user {
+    color: var(--text-color);
+    font-weight: bold;
+}
